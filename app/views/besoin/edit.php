@@ -1,5 +1,9 @@
 <h1>Modifier Besoin</h1>
 
+<?php if (!empty($error)): ?>
+    <p style="color: red; font-weight: bold;"><?= htmlspecialchars($error) ?></p>
+<?php endif; ?>
+
 <?php if (!empty($besoin)): ?>
 <form action="/besoin/update" method="POST">
     <input type="hidden" name="id" value="<?= htmlspecialchars($besoin['id']) ?>">

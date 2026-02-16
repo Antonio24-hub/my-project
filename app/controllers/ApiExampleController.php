@@ -51,6 +51,30 @@ class ApiExampleController {
 	{
 		$data = $this->app->request()->data;
 		$model = new Besoin($this->app->db());
+
+		// Validation type/unité
+		$error = $this->validateUniteForType((int) $data->id_typeBesoin, $data->unite);
+		if ($error !== null) {
+			$villes = $model->getAllVilles();
+			$regions = $model->getAllRegions();
+			$types = $model->getAllTypes();
+			$this->app->render('besoin/form', [
+				'villes' => $villes,
+				'regions' => $regions,
+				'types' => $types,
+				'error' => $error,
+				'old' => [
+					'id_typeBesoin' => $data->id_typeBesoin,
+					'id_ville' => $data->id_ville,
+					'id_region' => $data->id_region,
+					'name' => $data->name,
+					'quantite' => $data->quantite,
+					'unite' => $data->unite,
+				],
+			]);
+			return;
+		}
+
 		$model->insert(
 			(int) $data->id_typeBesoin,
 			(int) $data->id_ville,
@@ -88,6 +112,31 @@ class ApiExampleController {
 	{
 		$data = $this->app->request()->data;
 		$model = new Besoin($this->app->db());
+
+		// Validation type/unité
+		$error = $this->validateUniteForType((int) $data->id_typeBesoin, $data->unite);
+		if ($error !== null) {
+			$besoin = $model->getById((int) $data->id);
+			$villes = $model->getAllVilles();
+			$regions = $model->getAllRegions();
+			$types = $model->getAllTypes();
+			// Mettre à jour besoin avec les données soumises pour garder les valeurs
+			$besoin['id_typeBesoin'] = $data->id_typeBesoin;
+			$besoin['id_ville'] = $data->id_ville;
+			$besoin['id_region'] = $data->id_region;
+			$besoin['name'] = $data->name;
+			$besoin['quantite'] = $data->quantite;
+			$besoin['unite'] = $data->unite;
+			$this->app->render('besoin/edit', [
+				'besoin' => $besoin,
+				'villes' => $villes,
+				'regions' => $regions,
+				'types' => $types,
+				'error' => $error,
+			]);
+			return;
+		}
+
 		$model->update(
 			(int) $data->id,
 			(int) $data->id_typeBesoin,
@@ -109,6 +158,39 @@ class ApiExampleController {
 		$model = new Besoin($this->app->db());
 		$model->delete($id);
 		$this->app->redirect('/besoin/list');
+	}
+
+	/**
+	 * Valide la correspondance type besoin / unité
+	 */
+	private function validateUniteForType(int $typeId, ?string $unite): ?string
+	{
+		$allowed = [
+			'argent'   => ['Ariary'],
+			'materiel' => ['pièce', 'unité', 'kg', 'm²'],
+			'nature'   => ['kg', 'litre', 'sac', 'unité'],
+		];
+
+		// Récupérer le nom du type
+		$db = $this->app->db();
+		$stmt = $db->runQuery('SELECT name FROM typeBesoin WHERE id = ?', [$typeId]);
+		$type = $stmt->fetch();
+
+		if (!$type) {
+			return 'Type de besoin introuvable.';
+		}
+
+		$typeName = $type['name'];
+		if (!isset($allowed[$typeName])) {
+			return 'Type de besoin inconnu.';
+		}
+
+		if (!in_array($unite, $allowed[$typeName], true)) {
+			$unitesValides = implode(', ', $allowed[$typeName]);
+			return "L'unité \"$unite\" n'est pas valide pour le type \"$typeName\". Unités autorisées : $unitesValides.";
+		}
+
+		return null;
 	}
 
 	// ===================== DON =====================
