@@ -35,9 +35,11 @@ class ApiExampleController {
 	{
 		$model = new Besoin($this->app->db());
 		$villes = $model->getAllVilles();
+		$regions = $model->getAllRegions();
 		$types = $model->getAllTypes();
 		$this->app->render('besoin/form', [
 			'villes' => $villes,
+			'regions' => $regions,
 			'types' => $types,
 		]);
 	}
@@ -57,14 +59,17 @@ class ApiExampleController {
 		$error = $this->validateUniteForType((int) $data->id_typeBesoin, $data->unite);
 		if ($error !== null) {
 			$villes = $model->getAllVilles();
+			$regions = $model->getAllRegions();
 			$types = $model->getAllTypes();
 			$this->app->render('besoin/form', [
 				'villes' => $villes,
+				'regions' => $regions,
 				'types' => $types,
 				'error' => $error,
 				'old' => [
 					'id_typeBesoin' => $data->id_typeBesoin,
 					'id_ville' => $data->id_ville,
+					'id_region' => $id_region,
 					'name' => $data->name,
 					'quantite' => $data->quantite,
 					'unite' => $data->unite,
@@ -93,10 +98,12 @@ class ApiExampleController {
 		$model = new Besoin($this->app->db());
 		$besoin = $model->getById($id);
 		$villes = $model->getAllVilles();
+		$regions = $model->getAllRegions();
 		$types = $model->getAllTypes();
 		$this->app->render('besoin/edit', [
 			'besoin' => $besoin,
 			'villes' => $villes,
+			'regions' => $regions,
 			'types' => $types,
 		]);
 	}
@@ -117,6 +124,7 @@ class ApiExampleController {
 		if ($error !== null) {
 			$besoin = $model->getById((int) $data->id);
 			$villes = $model->getAllVilles();
+			$regions = $model->getAllRegions();
 			$types = $model->getAllTypes();
 			$besoin['id_typeBesoin'] = $data->id_typeBesoin;
 			$besoin['id_ville'] = $data->id_ville;
@@ -126,6 +134,7 @@ class ApiExampleController {
 			$this->app->render('besoin/edit', [
 				'besoin' => $besoin,
 				'villes' => $villes,
+				'regions' => $regions,
 				'types' => $types,
 				'error' => $error,
 			]);

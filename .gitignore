@@ -1,4 +1,4 @@
-vendor/
+
 .vscode/s
 composer.lock
 .vagrant/
