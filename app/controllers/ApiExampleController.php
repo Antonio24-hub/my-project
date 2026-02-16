@@ -37,10 +37,12 @@ class ApiExampleController {
 		$villes = $model->getAllVilles();
 		$regions = $model->getAllRegions();
 		$types = $model->getAllTypes();
+		$noms = $model->getDistinctNames();
 		$this->app->render('besoin/form', [
 			'villes' => $villes,
 			'regions' => $regions,
 			'types' => $types,
+			'noms' => $noms,
 		]);
 	}
 
@@ -61,10 +63,12 @@ class ApiExampleController {
 			$villes = $model->getAllVilles();
 			$regions = $model->getAllRegions();
 			$types = $model->getAllTypes();
+			$noms = $model->getDistinctNames();
 			$this->app->render('besoin/form', [
 				'villes' => $villes,
 				'regions' => $regions,
 				'types' => $types,
+				'noms' => $noms,
 				'error' => $error,
 				'old' => [
 					'id_typeBesoin' => $data->id_typeBesoin,
@@ -100,11 +104,13 @@ class ApiExampleController {
 		$villes = $model->getAllVilles();
 		$regions = $model->getAllRegions();
 		$types = $model->getAllTypes();
+		$noms = $model->getDistinctNames();
 		$this->app->render('besoin/edit', [
 			'besoin' => $besoin,
 			'villes' => $villes,
 			'regions' => $regions,
 			'types' => $types,
+			'noms' => $noms,
 		]);
 	}
 
@@ -126,6 +132,7 @@ class ApiExampleController {
 			$villes = $model->getAllVilles();
 			$regions = $model->getAllRegions();
 			$types = $model->getAllTypes();
+			$noms = $model->getDistinctNames();
 			$besoin['id_typeBesoin'] = $data->id_typeBesoin;
 			$besoin['id_ville'] = $data->id_ville;
 			$besoin['name'] = $data->name;
@@ -136,6 +143,7 @@ class ApiExampleController {
 				'villes' => $villes,
 				'regions' => $regions,
 				'types' => $types,
+				'noms' => $noms,
 				'error' => $error,
 			]);
 			return;

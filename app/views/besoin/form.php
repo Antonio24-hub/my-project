@@ -33,7 +33,24 @@
     </p>
     <p>
         <label for="name">Nom du besoin :</label><br>
-        <input type="text" name="name" id="name" value="<?= htmlspecialchars($old['name'] ?? '') ?>" required>
+        <select name="name" id="name" required>
+            <option value="">-- Choisir un nom --</option>
+            <?php
+            $grouped = [];
+            foreach (($noms ?? []) as $n) {
+                $grouped[$n['type_name'] ?? 'Autre'][] = $n['name'];
+            }
+            foreach ($grouped as $type => $names): ?>
+                <optgroup label="<?= htmlspecialchars($type) ?>">
+                    <?php foreach ($names as $name): ?>
+                        <option value="<?= htmlspecialchars($name) ?>"
+                            <?= (($old['name'] ?? '') === $name) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($name) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </optgroup>
+            <?php endforeach; ?>
+        </select>
     </p>
     <p>
         <label for="quantite">Quantité :</label><br>

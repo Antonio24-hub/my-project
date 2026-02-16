@@ -116,4 +116,17 @@ class Besoin
         $statement = $this->db->runQuery($sql);
         return $statement->fetchAll();
     }
+
+    /**
+     * Récupère les noms distincts de besoin groupés par type
+     */
+    public function getDistinctNames(): array
+    {
+        $sql = "SELECT DISTINCT b.name, t.name AS type_name
+                FROM besoin b
+                LEFT JOIN typeBesoin t ON b.id_typeBesoin = t.id
+                ORDER BY t.name, b.name";
+        $statement = $this->db->runQuery($sql);
+        return $statement->fetchAll();
+    }
 }
