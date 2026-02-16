@@ -1,0 +1,34 @@
+projet-BNGRC : Flightphp/Mysql
+
+1-conception des bases de donnees:
+    --creation tables:
+        .regions
+        .ville
+        .categories
+        .besoins
+        .don
+        .panier
+        
+    --insertion des donnees.
+
+2-Models:
+    -fonction d'insertion -> InsertBesoins()
+    -fonction GetAllBesoin()
+    -fonction GetAllDons()
+    -fonction de comparaison -> CompareDons
+        ..if besoins > dons -> afficher erreur (le stock est inferieur au don)
+
+3-Pages:
+    .includes:
+        -header
+        -footer
+
+    .pages html pour les views.
+
+4-Affichage:
+    -page insertion des besoins et dons des villes (choix des categories et ajout au panier)
+    -affichage de toutes les besoins et dons de chaque ville
+
+5-design
+    -bootstrap
+    -css (style.css)
