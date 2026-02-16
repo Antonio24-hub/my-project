@@ -75,7 +75,7 @@ INSERT INTO typeBesoin (name) VALUES ('argent');
 
 -- Besoins
 INSERT INTO besoin (id_typeBesoin, id_ville, id_region, name, quantite, unite) VALUES (1, 1, 1, 'Riz', 500.00, 'kg');
-INSERT INTO besoin (id_typeBesoin, id_ville, id_region, name, quantite, unite) VALUES (2, 2, 2, 'Tôles', 150.00, 'm²');
+INSERT INTO besoin (id_typeBesoin, id_ville, id_region, name, quantite, unite) VALUES (2, 2, 2, 'Tôles', 150.00, 'm/carré');
 INSERT INTO besoin (id_typeBesoin, id_ville, id_region, name, quantite, unite) VALUES (3, 3, 3, 'Aide financière', 5000000.00, 'Ariary');
 
 -- Distributions

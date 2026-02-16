@@ -32,18 +32,6 @@
         </select>
     </p>
     <p>
-        <label for="id_region">Région :</label><br>
-        <select name="id_region" id="id_region" required>
-            <option value="">-- Choisir une région --</option>
-            <?php foreach ($regions as $r): ?>
-                <option value="<?= htmlspecialchars($r['id']) ?>"
-                    <?= (($old['id_region'] ?? '') == $r['id']) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($r['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </p>
-    <p>
         <label for="name">Nom du besoin :</label><br>
         <input type="text" name="name" id="name" value="<?= htmlspecialchars($old['name'] ?? '') ?>" required>
     </p>
@@ -70,14 +58,3 @@
         <a href="/besoin/list">Annuler</a>
     </p>
 </form>
-
-<script>
-// Auto-select region when ville is selected
-document.getElementById('id_ville').addEventListener('change', function() {
-    var selected = this.options[this.selectedIndex];
-    var regionId = selected.getAttribute('data-region');
-    if (regionId) {
-        document.getElementById('id_region').value = regionId;
-    }
-});
-</script>

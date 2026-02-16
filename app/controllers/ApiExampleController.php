@@ -35,11 +35,9 @@ class ApiExampleController {
 	{
 		$model = new Besoin($this->app->db());
 		$villes = $model->getAllVilles();
-		$regions = $model->getAllRegions();
 		$types = $model->getAllTypes();
 		$this->app->render('besoin/form', [
 			'villes' => $villes,
-			'regions' => $regions,
 			'types' => $types,
 		]);
 	}
@@ -52,21 +50,21 @@ class ApiExampleController {
 		$data = $this->app->request()->data;
 		$model = new Besoin($this->app->db());
 
+		// Récupérer la région depuis la ville
+		$id_region = $this->getRegionFromVille((int) $data->id_ville);
+
 		// Validation type/unité
 		$error = $this->validateUniteForType((int) $data->id_typeBesoin, $data->unite);
 		if ($error !== null) {
 			$villes = $model->getAllVilles();
-			$regions = $model->getAllRegions();
 			$types = $model->getAllTypes();
 			$this->app->render('besoin/form', [
 				'villes' => $villes,
-				'regions' => $regions,
 				'types' => $types,
 				'error' => $error,
 				'old' => [
 					'id_typeBesoin' => $data->id_typeBesoin,
 					'id_ville' => $data->id_ville,
-					'id_region' => $data->id_region,
 					'name' => $data->name,
 					'quantite' => $data->quantite,
 					'unite' => $data->unite,
@@ -78,7 +76,7 @@ class ApiExampleController {
 		$model->insert(
 			(int) $data->id_typeBesoin,
 			(int) $data->id_ville,
-			(int) $data->id_region,
+			$id_region,
 			$data->name,
 			(float) $data->quantite,
 			$data->unite
@@ -95,12 +93,10 @@ class ApiExampleController {
 		$model = new Besoin($this->app->db());
 		$besoin = $model->getById($id);
 		$villes = $model->getAllVilles();
-		$regions = $model->getAllRegions();
 		$types = $model->getAllTypes();
 		$this->app->render('besoin/edit', [
 			'besoin' => $besoin,
 			'villes' => $villes,
-			'regions' => $regions,
 			'types' => $types,
 		]);
 	}
@@ -113,24 +109,23 @@ class ApiExampleController {
 		$data = $this->app->request()->data;
 		$model = new Besoin($this->app->db());
 
+		// Récupérer la région depuis la ville
+		$id_region = $this->getRegionFromVille((int) $data->id_ville);
+
 		// Validation type/unité
 		$error = $this->validateUniteForType((int) $data->id_typeBesoin, $data->unite);
 		if ($error !== null) {
 			$besoin = $model->getById((int) $data->id);
 			$villes = $model->getAllVilles();
-			$regions = $model->getAllRegions();
 			$types = $model->getAllTypes();
-			// Mettre à jour besoin avec les données soumises pour garder les valeurs
 			$besoin['id_typeBesoin'] = $data->id_typeBesoin;
 			$besoin['id_ville'] = $data->id_ville;
-			$besoin['id_region'] = $data->id_region;
 			$besoin['name'] = $data->name;
 			$besoin['quantite'] = $data->quantite;
 			$besoin['unite'] = $data->unite;
 			$this->app->render('besoin/edit', [
 				'besoin' => $besoin,
 				'villes' => $villes,
-				'regions' => $regions,
 				'types' => $types,
 				'error' => $error,
 			]);
@@ -141,7 +136,7 @@ class ApiExampleController {
 			(int) $data->id,
 			(int) $data->id_typeBesoin,
 			(int) $data->id_ville,
-			(int) $data->id_region,
+			$id_region,
 			$data->name,
 			(float) $data->quantite,
 			$data->unite
@@ -191,6 +186,17 @@ class ApiExampleController {
 		}
 
 		return null;
+	}
+
+	/**
+	 * Récupère le region_id à partir de l'id de la ville
+	 */
+	private function getRegionFromVille(int $villeId): int
+	{
+		$db = $this->app->db();
+		$stmt = $db->runQuery('SELECT region_id FROM ville WHERE id = ?', [$villeId]);
+		$ville = $stmt->fetch();
+		return $ville ? (int) $ville['region_id'] : 0;
 	}
 
 	// ===================== DON =====================

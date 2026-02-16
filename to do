@@ -8,6 +8,7 @@ projet-BNGRC : Flightphp/Mysql
         .besoins
         .don
         .panier
+        .partageDon
         
     --insertion des donnees.
 

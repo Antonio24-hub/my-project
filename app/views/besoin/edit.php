@@ -34,18 +34,6 @@
         </select>
     </p>
     <p>
-        <label for="id_region">Région :</label><br>
-        <select name="id_region" id="id_region" required>
-            <option value="">-- Choisir une région --</option>
-            <?php foreach ($regions as $r): ?>
-                <option value="<?= htmlspecialchars($r['id']) ?>"
-                    <?= ($r['id'] == $besoin['id_region']) ? 'selected' : '' ?>>
-                    <?= htmlspecialchars($r['name']) ?>
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </p>
-    <p>
         <label for="name">Nom du besoin :</label><br>
         <input type="text" name="name" id="name" value="<?= htmlspecialchars($besoin['name']) ?>" required>
     </p>
@@ -72,15 +60,6 @@
     </p>
 </form>
 
-<script>
-document.getElementById('id_ville').addEventListener('change', function() {
-    var selected = this.options[this.selectedIndex];
-    var regionId = selected.getAttribute('data-region');
-    if (regionId) {
-        document.getElementById('id_region').value = regionId;
-    }
-});
-</script>
 <?php else: ?>
     <p>Besoin introuvable.</p>
     <a href="/besoin/list">Retour à la liste</a>
