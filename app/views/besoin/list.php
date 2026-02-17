@@ -1,8 +1,22 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BNGRC - Gestion des catastrophes</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/effects.css">
+</head>
+<body>
 <h1>Liste des Besoins par Ville</h1>
 
-<a href="/">Accueil</a> | <b>Besoins</b> | <a href="/don/list">Dons</a> | <a href="/distribution/list">Distributions</a> | <a href="/stock/list">Stock</a>
-<br><br>
-<a href="/besoin/form">+ Nouveau besoin</a>
+<nav>
+<a href="/">Accueil</a> <b>Besoins</b> <a href="/don/list">Dons</a> <a href="/distribution/list">Distributions</a> <a href="/stock/list">Stock</a> <a href="/prix/list">Prix</a> <a href="/achat/list">Achats</a> <a href="/tableau-de-bord">Tableau de bord</a> <a href="/recap">Récap</a>
+</nav>
+
+<br>
+<a href="/besoin/form"> Nouveau besoin</a>
 
 <table border="1" cellpadding="5" cellspacing="0">
     <thead>
@@ -42,3 +56,6 @@
         <?php endif; ?>
     </tbody>
 </table>
+
+</body>
+</html>

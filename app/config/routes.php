@@ -48,10 +48,31 @@ $router->group('', function(Router $router) use ($app) {
 	// Stock routes
 	$router->get('/stock/list', [ApiExampleController::class, 'listStock']);
 
+	// Prix routes
+	$router->get('/prix/list', [ApiExampleController::class, 'listPrix']);
+	$router->get('/prix/form', [ApiExampleController::class, 'formPrix']);
+	$router->post('/prix/save', [ApiExampleController::class, 'savePrix']);
+	$router->get('/prix/edit', [ApiExampleController::class, 'editPrix']);
+	$router->post('/prix/update', [ApiExampleController::class, 'updatePrix']);
+	$router->get('/prix/delete', [ApiExampleController::class, 'deletePrix']);
+
+	// Achat routes
+	$router->get('/achat/list', [ApiExampleController::class, 'listAchats']);
+	$router->get('/achat/form', [ApiExampleController::class, 'formAchat']);
+	$router->post('/achat/save', [ApiExampleController::class, 'saveAchat']);
+	$router->get('/achat/delete', [ApiExampleController::class, 'deleteAchat']);
+
+	// Tableau de bord
+	$router->get('/tableau-de-bord', [ApiExampleController::class, 'tableauDeBord']);
+
+	// Récap
+	$router->get('/recap', [ApiExampleController::class, 'recapGlobal']);
+
 	$router->group('/api', function() use ($router) {
 		$router->get('/users', [ ApiExampleController::class, 'getUsers' ]);
 		$router->get('/users/@id:[0-9]', [ ApiExampleController::class, 'getUser' ]);
 		$router->post('/users/@id:[0-9]', [ ApiExampleController::class, 'updateUser' ]);
+		$router->get('/recap', [ ApiExampleController::class, 'recapGlobalApi' ]);
 	});
 	
 }, [ SecurityHeadersMiddleware::class ]);

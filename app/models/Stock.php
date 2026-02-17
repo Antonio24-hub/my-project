@@ -18,7 +18,7 @@ class Stock
      */
     public function getAll(): array
     {
-        $sql = "SELECT s.id, s.name, s.quantite, t.name AS type_name
+        $sql = "SELECT s.id, s.name, s.quantite, s.unite, t.name AS type_name
                 FROM stock s
                 LEFT JOIN typeBesoin t ON s.id_typeBesoin = t.id
                 ORDER BY s.name";
@@ -54,21 +54,23 @@ class Stock
      * Si le produit existe déjà dans le stock, on augmente la quantité
      * Sinon on crée une nouvelle entrée
      */
-    public function addToStock(int $id_typeBesoin, string $name, float $quantite): bool
+    public function addToStock(int $id_typeBesoin, string $name, float $quantite, string $unite): bool
     {
         $existing = $this->getByNameAndType($name, $id_typeBesoin);
         if ($existing !== false) {
-            $sql = "UPDATE stock SET quantite = quantite + :quantite WHERE id = :id";
+            $sql = "UPDATE stock SET quantite = quantite + :quantite, unite = :unite WHERE id = :id";
             $this->db->runQuery($sql, [
                 ':quantite' => $quantite,
+                ':unite' => $unite,
                 ':id' => $existing['id'],
             ]);
         } else {
-            $sql = "INSERT INTO stock (id_typeBesoin, name, quantite) VALUES (:id_typeBesoin, :name, :quantite)";
+            $sql = "INSERT INTO stock (id_typeBesoin, name, quantite, unite) VALUES (:id_typeBesoin, :name, :quantite, :unite)";
             $this->db->runQuery($sql, [
                 ':id_typeBesoin' => $id_typeBesoin,
                 ':name' => $name,
                 ':quantite' => $quantite,
+                ':unite' => $unite,
             ]);
         }
         return true;
@@ -106,5 +108,49 @@ class Stock
         $statement = $this->db->runQuery($sql, [':name' => $name]);
         $result = $statement->fetch();
         return (float) ($result['total'] ?? 0);
+    }
+
+    /**
+     * Récupère le stock total pour un type donné (ex: 'argent')
+     */
+    public function getStockByType(string $typeName): float
+    {
+        $sql = "SELECT COALESCE(SUM(s.quantite), 0) AS total
+                FROM stock s
+                JOIN typeBesoin t ON s.id_typeBesoin = t.id
+                WHERE LOWER(t.name) = LOWER(:typeName)";
+        $statement = $this->db->runQuery($sql, [':typeName' => $typeName]);
+        $result = $statement->fetch();
+        return (float) ($result['total'] ?? 0);
+    }
+
+    /**
+     * Retire du stock par type (ex: retirer de l'argent)
+     * Débite les entrées de stock du type donné par ordre d'id
+     */
+    public function removeFromStockByType(string $typeName, float $montant): bool
+    {
+        $sql = "SELECT s.id, s.quantite
+                FROM stock s
+                JOIN typeBesoin t ON s.id_typeBesoin = t.id
+                WHERE LOWER(t.name) = LOWER(:typeName) AND s.quantite > 0
+                ORDER BY s.id";
+        $statement = $this->db->runQuery($sql, [':typeName' => $typeName]);
+        $rows = $statement->fetchAll();
+
+        $remaining = $montant;
+        foreach ($rows as $row) {
+            if ($remaining <= 0) {
+                break;
+            }
+            $available = (float) $row['quantite'];
+            $debit = min($available, $remaining);
+
+            $sql = "UPDATE stock SET quantite = quantite - :debit WHERE id = :id";
+            $this->db->runQuery($sql, [':debit' => $debit, ':id' => $row['id']]);
+            $remaining -= $debit;
+        }
+
+        return $remaining <= 0;
     }
 }

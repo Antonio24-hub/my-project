@@ -1,0 +1,385 @@
+
+
+/* -------- RESET -------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+body {
+    min-height: 100vh;
+    line-height: 1.7;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 25px 30px;
+}
+
+/* -------- NAVIGATION -------- */
+nav,
+.nav-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 25px;
+    justify-content: flex-end;
+}
+
+nav a,
+nav b,
+body > a,
+body > b {
+    display: inline-block;
+    padding: 8px 16px;
+    margin: 2px;
+}
+
+/* -------- TITRES -------- */
+h1 {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+}
+
+/* Titre centré quand suivi d'un formulaire */
+body:has(form) h1 {
+    text-align: center;
+    width: 550px;
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+h2 {
+    margin: 40px 0 25px;
+    padding-left: 20px;
+}
+
+h3 {
+    padding: 20px 28px;
+    margin: 30px 0;
+}
+
+/* -------- MENU ACCUEIL -------- */
+ul.menu-list {
+    list-style: none;
+    margin-top: 30px;
+    display: grid;
+    gap: 18px;
+}
+
+ul.menu-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 25px 30px;
+}
+
+/* -------- LISTE ACCUEIL (ul simple) -------- */
+body > ul {
+    list-style: none;
+    margin-top: 25px;
+    display: grid;
+    gap: 12px;
+}
+
+body > ul a {
+    display: block;
+    padding: 18px 24px;
+}
+
+/* -------- TABLEAU -------- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+    overflow: hidden;
+}
+
+thead th {
+    padding: 18px 20px;
+    text-align: left;
+}
+
+tbody td {
+    padding: 18px 20px;
+}
+
+tbody a {
+    display: inline-block;
+    padding: 8px 16px;
+    margin-right: 10px;
+}
+
+/* -------- FORMULAIRES -------- */
+form {
+    max-width: 550px;
+    padding: 25px 30px;
+    margin: 15px auto;
+}
+
+form p {
+    margin-bottom: 24px;
+}
+
+form p:last-child {
+    margin-bottom: 0;
+    margin-top: 25px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+label {
+    display: block;
+    margin-bottom: 10px;
+}
+
+label br {
+    display: none;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="email"],
+input[type="password"],
+select,
+textarea {
+    width: 100%;
+    padding: 14px 18px;
+}
+
+textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+form em {
+    display: block;
+    margin-top: 8px;
+    padding: 12px 16px;
+}
+
+/* -------- BOUTONS -------- */
+button,
+input[type="submit"] {
+    padding: 14px 32px;
+    border: none;
+    cursor: pointer;
+}
+
+form p a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 14px 28px;
+}
+
+a[href*="/form"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 28px;
+    margin: 25px 0;
+}
+
+/* -------- MESSAGES -------- */
+.error,
+.success,
+.alert-info,
+p[style*="color: red"] {
+    padding: 20px 28px;
+    margin-bottom: 28px;
+}
+
+/* -------- RECAP PAGE -------- */
+.recap-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.recap-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.recap-card {
+    background: var(--card-bg, #fff);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.recap-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+
+.recap-card .label {
+    font-size: 0.9rem;
+    color: var(--text-muted, #666);
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.recap-card .value {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: var(--primary-color, #2c3e50);
+}
+
+.recap-card .value.small {
+    font-size: 1.8rem;
+}
+
+.recap-card.besoins { border-left: 4px solid #e74c3c; }
+.recap-card.satisfaits { border-left: 4px solid #27ae60; }
+.recap-card.restants { border-left: 4px solid #95a5a6; }
+.recap-card.dons-recus { border-left: 4px solid #3498db; }
+.recap-card.dons-dispatches { border-left: 4px solid #9b59b6; }
+.recap-card.dons-stock { border-left: 4px solid #95a5a6; }
+.recap-card.achats { border-left: 4px solid #f39c12; }
+.recap-card.montant { border-left: 4px solid #1abc9c; }
+
+.recap-section {
+    margin: 3rem 0;
+}
+
+.recap-section h2 {
+    border-bottom: 2px solid var(--primary-color, #2c3e50);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+/* -------- BOUTON ACTUALISER -------- */
+.refresh-container {
+    text-align: center;
+    margin: 1rem 0;
+}
+
+.btn-refresh {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-refresh:hover {
+    background: linear-gradient(135deg, #2980b9, #1f5f8b);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+}
+
+.btn-refresh:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.btn-icon {
+    font-size: 1.2rem;
+}
+
+.btn-icon.spinning {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.refresh-status {
+    margin-left: 1rem;
+    color: #27ae60;
+    display: none;
+}
+
+/* -------- RESPONSIVE -------- */
+@media (max-width: 768px) {
+    body {
+        padding: 20px 15px;
+    }
+    
+    nav,
+    .nav-bar {
+        justify-content: center;
+    }
+    
+    nav a,
+    nav b,
+    body > a,
+    body > b {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    
+    h1 { 
+        margin-bottom: 25px;
+        font-size: 24px;
+    }
+    
+    table {
+        display: block;
+        overflow-x: auto;
+    }
+    
+    thead th, tbody td {
+        padding: 14px;
+        white-space: nowrap;
+    }
+    
+    button,
+    input[type="submit"],
+    form p a,
+    a[href*="/form"] {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        margin: 10px 0;
+    }
+    
+    form p a {
+        margin-left: 0;
+    }
+    
+    form {
+        padding: 20px 18px;
+        max-width: 100%;
+    }
+    
+    form::before {
+        margin: -20px -18px 15px -18px;
+    }
+    
+    form p:last-child {
+        flex-direction: column;
+    }
+    
+    body > ul {
+        gap: 8px;
+    }
+    
+    body > ul a {
+        padding: 14px 18px;
+    }
+}

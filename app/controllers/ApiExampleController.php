@@ -6,6 +6,10 @@ use app\models\Besoin;
 use app\models\Distribution;
 use app\models\Don;
 use app\models\Stock;
+use app\models\Prix;
+use app\models\Achat;
+use app\models\TableauDeBord;
+use app\models\Recap;
 use flight\Engine;
 
 class ApiExampleController {
@@ -249,12 +253,13 @@ class ApiExampleController {
 			(int) $data->id_typeBesoin,
 			$data->name,
 			(float) $data->quantite,
+			$data->unite,
 			$data->date
 		);
 
 		// Ajouter au stock
 		$stockModel = new Stock($this->app->db());
-		$stockModel->addToStock((int) $data->id_typeBesoin, $data->name, (float) $data->quantite);
+		$stockModel->addToStock((int) $data->id_typeBesoin, $data->name, (float) $data->quantite, $data->unite);
 
 		$this->app->redirect('/don/list');
 	}
@@ -286,6 +291,7 @@ class ApiExampleController {
 			(int) $data->id_typeBesoin,
 			$data->name,
 			(float) $data->quantite,
+			$data->unite,
 			$data->date
 		);
 		$this->app->redirect('/don/list');
@@ -317,36 +323,79 @@ class ApiExampleController {
 	{
 		$model = new Distribution($this->app->db());
 		$besoins = $model->getAllBesoins();
-		$this->app->render('distribution/form', ['besoins' => $besoins]);
+		$villes = $model->getAllVilles();
+		$types = $model->getAllTypes();
+		$this->app->render('distribution/form', [
+			'besoins' => $besoins,
+			'villes' => $villes,
+			'types' => $types,
+		]);
 	}
 
 	/**
 	 * Enregistre une nouvelle distribution
+	 * Avec ou sans besoin associé
 	 */
 	public function saveDistribution(): void
 	{
-		$id_besoin = (int) $this->app->request()->data->id_besoin;
-		$date = $this->app->request()->data->date;
-		$quantite = (float) $this->app->request()->data->quantite;
-
-		// Vérifier le stock disponible
-		$besoinModel = new Besoin($this->app->db());
-		$besoin = $besoinModel->getById($id_besoin);
-		$stockModel = new Stock($this->app->db());
-		$besoinName = $besoin ? $besoin['name'] : '';
-
-		if (!$stockModel->removeFromStock($besoinName, $quantite)) {
-			$model = new Distribution($this->app->db());
-			$besoins = $model->getAllBesoins();
-			$this->app->render('distribution/form', [
-				'besoins' => $besoins,
-				'error' => 'Stock insuffisant pour "' . htmlspecialchars($besoinName) . '". Vérifiez le stock disponible.',
-			]);
-			return;
-		}
+		$data = $this->app->request()->data;
+		$id_besoin_raw = $data->id_besoin;
+		$date = $data->date;
+		$quantite = (float) $data->quantite;
 
 		$model = new Distribution($this->app->db());
-		$model->insert($id_besoin, $date, $quantite);
+		$stockModel = new Stock($this->app->db());
+
+		if ($id_besoin_raw !== '' && $id_besoin_raw !== null) {
+			// Distribution liée à un besoin
+			$id_besoin = (int) $id_besoin_raw;
+			$besoinModel = new Besoin($this->app->db());
+			$besoin = $besoinModel->getById($id_besoin);
+
+			if (!$besoin) {
+				$this->renderDistributionFormWithError('Besoin introuvable.');
+				return;
+			}
+
+			$name = $besoin['name'];
+			$id_ville = (int) $besoin['id_ville'];
+			$id_typeBesoin = (int) $besoin['id_typeBesoin'];
+			$unite = $besoin['unite'];
+
+			// Vérifier le stock
+			if (!$stockModel->removeFromStock($name, $quantite)) {
+				$this->renderDistributionFormWithError(
+					'Stock insuffisant pour "' . htmlspecialchars($name) . '". Vérifiez le stock disponible.'
+				);
+				return;
+			}
+
+			$model->insertWithBesoin($id_besoin, $id_ville, $id_typeBesoin, $name, $unite, $date, $quantite);
+		} else {
+			// Distribution libre (sans besoin)
+			$id_ville = (int) $data->id_ville;
+			$id_typeBesoin = (int) $data->id_typeBesoin;
+			$name = trim($data->name);
+			$unite = $data->unite;
+
+			if ($id_ville === 0 || $id_typeBesoin === 0 || $name === '' || $unite === '' || $unite === null) {
+				$this->renderDistributionFormWithError(
+					'Sans besoin, vous devez remplir : ville, type, nom du produit et unité.'
+				);
+				return;
+			}
+
+			// Vérifier le stock
+			if (!$stockModel->removeFromStock($name, $quantite)) {
+				$this->renderDistributionFormWithError(
+					'Stock insuffisant pour "' . htmlspecialchars($name) . '". Vérifiez le stock disponible.'
+				);
+				return;
+			}
+
+			$model->insertWithoutBesoin($id_ville, $id_typeBesoin, $name, $unite, $date, $quantite);
+		}
+
 		$this->app->redirect('/distribution/list');
 	}
 
@@ -359,9 +408,13 @@ class ApiExampleController {
 		$model = new Distribution($this->app->db());
 		$distribution = $model->getById($id);
 		$besoins = $model->getAllBesoins();
+		$villes = $model->getAllVilles();
+		$types = $model->getAllTypes();
 		$this->app->render('distribution/edit', [
 			'distribution' => $distribution,
 			'besoins' => $besoins,
+			'villes' => $villes,
+			'types' => $types,
 		]);
 	}
 
@@ -370,13 +423,30 @@ class ApiExampleController {
 	 */
 	public function updateDistribution(): void
 	{
-		$id = (int) $this->app->request()->data->id;
-		$id_besoin = (int) $this->app->request()->data->id_besoin;
-		$date = $this->app->request()->data->date;
-		$quantite = (float) $this->app->request()->data->quantite;
+		$data = $this->app->request()->data;
+		$id = (int) $data->id;
+		$id_besoin_raw = $data->id_besoin;
+		$date = $data->date;
+		$quantite = (float) $data->quantite;
+
+		if ($id_besoin_raw !== '' && $id_besoin_raw !== null) {
+			$id_besoin = (int) $id_besoin_raw;
+			$besoinModel = new Besoin($this->app->db());
+			$besoin = $besoinModel->getById($id_besoin);
+			$id_ville = (int) $besoin['id_ville'];
+			$id_typeBesoin = (int) $besoin['id_typeBesoin'];
+			$name = $besoin['name'];
+			$unite = $besoin['unite'];
+		} else {
+			$id_besoin = null;
+			$id_ville = (int) $data->id_ville;
+			$id_typeBesoin = (int) $data->id_typeBesoin;
+			$name = trim($data->name);
+			$unite = $data->unite;
+		}
 
 		$model = new Distribution($this->app->db());
-		$model->update($id, $id_besoin, $date, $quantite);
+		$model->update($id, $id_besoin, $id_ville, $id_typeBesoin, $name, $unite, $date, $quantite);
 		$this->app->redirect('/distribution/list');
 	}
 
@@ -391,6 +461,23 @@ class ApiExampleController {
 		$this->app->redirect('/distribution/list');
 	}
 
+	/**
+	 * Helper: ré-affiche le formulaire distribution avec une erreur
+	 */
+	private function renderDistributionFormWithError(string $error): void
+	{
+		$model = new Distribution($this->app->db());
+		$besoins = $model->getAllBesoins();
+		$villes = $model->getAllVilles();
+		$types = $model->getAllTypes();
+		$this->app->render('distribution/form', [
+			'besoins' => $besoins,
+			'villes' => $villes,
+			'types' => $types,
+			'error' => $error,
+		]);
+	}
+
 	// ===================== STOCK =====================
 
 	/**
@@ -401,5 +488,241 @@ class ApiExampleController {
 		$model = new Stock($this->app->db());
 		$stocks = $model->getAll();
 		$this->app->render('stock/list', ['stocks' => $stocks]);
+	}
+
+	// ===================== PRIX =====================
+
+	/**
+	 * Affiche la liste des prix
+	 */
+	public function listPrix(): void
+	{
+		$model = new Prix($this->app->db());
+		$prix_list = $model->getAll();
+		$this->app->render('prix/list', ['prix_list' => $prix_list]);
+	}
+
+	/**
+	 * Affiche le formulaire d'ajout d'un prix
+	 */
+	public function formPrix(): void
+	{
+		$model = new Prix($this->app->db());
+		$types = $model->getTypesNatureMateriel();
+		$this->app->render('prix/form', ['types' => $types]);
+	}
+
+	/**
+	 * Enregistre un nouveau prix
+	 */
+	public function savePrix(): void
+	{
+		$data = $this->app->request()->data;
+		$model = new Prix($this->app->db());
+		$model->insert(
+			$data->name,
+			(int) $data->id_typeBesoin,
+			(float) $data->prix_unitaire,
+			$data->unite
+		);
+		$this->app->redirect('/prix/list');
+	}
+
+	/**
+	 * Affiche le formulaire d'édition d'un prix
+	 */
+	public function editPrix(): void
+	{
+		$id = (int) $this->app->request()->query->id;
+		$model = new Prix($this->app->db());
+		$prix = $model->getById($id);
+		$types = $model->getTypesNatureMateriel();
+		$this->app->render('prix/edit', [
+			'prix' => $prix,
+			'types' => $types,
+		]);
+	}
+
+	/**
+	 * Met à jour un prix
+	 */
+	public function updatePrix(): void
+	{
+		$data = $this->app->request()->data;
+		$model = new Prix($this->app->db());
+		$model->update(
+			(int) $data->id,
+			$data->name,
+			(int) $data->id_typeBesoin,
+			(float) $data->prix_unitaire,
+			$data->unite
+		);
+		$this->app->redirect('/prix/list');
+	}
+
+	/**
+	 * Supprime un prix
+	 */
+	public function deletePrix(): void
+	{
+		$id = (int) $this->app->request()->query->id;
+		$model = new Prix($this->app->db());
+		$model->delete($id);
+		$this->app->redirect('/prix/list');
+	}
+
+	// ===================== ACHAT =====================
+
+	/**
+	 * Affiche la liste des achats (filtrable par ville)
+	 */
+	public function listAchats(): void
+	{
+		$model = new Achat($this->app->db());
+		
+		// Récupérer le filtre ville depuis les paramètres GET
+		$id_ville = $this->app->request()->query->id_ville;
+		$id_ville = ($id_ville !== null && $id_ville !== '') ? (int) $id_ville : null;
+		
+		// Récupérer les achats (tous ou filtrés par ville)
+		$achats = $model->getByVille($id_ville);
+		
+		// Récupérer la liste des villes pour le menu déroulant
+		$villes = $model->getAllVilles();
+
+		$this->app->render('achat/list', [
+			'achats' => $achats,
+			'villes' => $villes,
+			'selected_ville' => $id_ville,
+		]);
+	}
+
+	/**
+	 * Affiche le formulaire d'ajout d'un achat
+	 */
+	public function formAchat(): void
+	{
+		$model = new Achat($this->app->db());
+		$prix_list = $model->getAllPrix();
+		$villes = $model->getAllVilles();
+
+		$this->app->render('achat/form', [
+			'prix_list' => $prix_list,
+			'villes' => $villes,
+		]);
+	}
+
+	/**
+	 * Enregistre un nouvel achat
+	 * Débite le stock argent, crédite le stock produit
+	 */
+	public function saveAchat(): void
+	{
+		$data = $this->app->request()->data;
+		$id_prix = (int) $data->id_prix;
+		$id_ville = $data->id_ville !== '' ? (int) $data->id_ville : null;
+		$quantite = (float) $data->quantite;
+		$date = $data->date;
+
+		// Récupérer le prix unitaire
+		$prixModel = new Prix($this->app->db());
+		$prix = $prixModel->getById($id_prix);
+
+		if (!$prix) {
+			$this->renderAchatFormWithError('Prix introuvable.');
+			return;
+		}
+
+		$montant = $quantite * (float) $prix['prix_unitaire'];
+
+		// Vérifier le stock d'argent
+		$stockModel = new Stock($this->app->db());
+		$stockArgent = $stockModel->getStockByType('argent');
+
+		if ($stockArgent < $montant) {
+			$this->renderAchatFormWithError(
+				'Stock d\'argent insuffisant. Disponible : ' . number_format($stockArgent, 2, ',', ' ') . 
+				' Ar. Nécessaire : ' . number_format($montant, 2, ',', ' ') . ' Ar.'
+			);
+			return;
+		}
+
+		// Débiter le stock argent
+		$stockModel->removeFromStockByType('argent', $montant);
+
+		// Créditer le stock du produit acheté
+		$stockModel->addToStock(
+			(int) $prix['id_typeBesoin'],
+			$prix['name'],
+			$quantite,
+			$prix['unite']
+		);
+
+		// Enregistrer l'achat
+		$achatModel = new Achat($this->app->db());
+		$achatModel->insert($id_prix, $id_ville, $quantite, $montant, $date);
+
+		$this->app->redirect('/achat/list');
+	}
+
+	/**
+	 * Supprime un achat
+	 */
+	public function deleteAchat(): void
+	{
+		$id = (int) $this->app->request()->query->id;
+		$model = new Achat($this->app->db());
+		$model->delete($id);
+		$this->app->redirect('/achat/list');
+	}
+
+	/**
+	 * Helper: ré-affiche le formulaire achat avec une erreur
+	 */
+	private function renderAchatFormWithError(string $error): void
+	{
+		$model = new Achat($this->app->db());
+		$prix_list = $model->getAllPrix();
+		$villes = $model->getAllVilles();
+
+		$this->app->render('achat/form', [
+			'prix_list' => $prix_list,
+			'villes' => $villes,
+			'error' => $error,
+		]);
+	}
+
+	// ===================== TABLEAU DE BORD =====================
+
+	/**
+	 * Affiche le tableau de bord avec les statistiques par ville
+	 */
+	public function tableauDeBord(): void
+	{
+		$model = new TableauDeBord($this->app->db());
+		$stats = $model->getAllStats();
+		$this->app->render('tableau_de_bord', $stats);
+	}
+
+	// ===================== RECAP =====================
+
+	/**
+	 * Affiche le récapitulatif global
+	 */
+	public function recapGlobal(): void
+	{
+		$model = new Recap($this->app->db());
+		$stats = $model->getAllStats();
+		$stats['csp_nonce'] = $this->app->get('csp_nonce');
+		$this->app->render('recap', $stats);
+	}
+
+	/**
+	 * API endpoint pour récupérer les données du récapitulatif en JSON
+	 */
+	public function recapGlobalApi(): void
+	{
+		$model = new Recap($this->app->db());
+		$this->app->json($model->getAllStats());
 	}
 }

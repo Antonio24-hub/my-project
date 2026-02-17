@@ -18,7 +18,7 @@ class Don
      */
     public function getAll(): array
     {
-        $sql = "SELECT d.id, d.name, d.quantite, d.date, t.name AS type_name
+        $sql = "SELECT d.id, d.name, d.quantite, d.unite, d.date, t.name AS type_name
                 FROM don d
                 LEFT JOIN typeBesoin t ON d.id_typeBesoin = t.id
                 ORDER BY d.date DESC";
@@ -39,14 +39,15 @@ class Don
     /**
      * Insère un nouveau don
      */
-    public function insert(int $id_typeBesoin, string $name, float $quantite, string $date): bool
+    public function insert(int $id_typeBesoin, string $name, float $quantite, string $unite, string $date): bool
     {
-        $sql = "INSERT INTO don (id_typeBesoin, name, quantite, date) 
-                VALUES (:id_typeBesoin, :name, :quantite, :date)";
+        $sql = "INSERT INTO don (id_typeBesoin, name, quantite, unite, date) 
+                VALUES (:id_typeBesoin, :name, :quantite, :unite, :date)";
         $this->db->runQuery($sql, [
             ':id_typeBesoin' => $id_typeBesoin,
             ':name' => $name,
             ':quantite' => $quantite,
+            ':unite' => $unite,
             ':date' => $date,
         ]);
         return true;
@@ -55,15 +56,16 @@ class Don
     /**
      * Met à jour un don
      */
-    public function update(int $id, int $id_typeBesoin, string $name, float $quantite, string $date): bool
+    public function update(int $id, int $id_typeBesoin, string $name, float $quantite, string $unite, string $date): bool
     {
         $sql = "UPDATE don SET id_typeBesoin = :id_typeBesoin, name = :name, quantite = :quantite, 
-                date = :date WHERE id = :id";
+                unite = :unite, date = :date WHERE id = :id";
         $this->db->runQuery($sql, [
             ':id' => $id,
             ':id_typeBesoin' => $id_typeBesoin,
             ':name' => $name,
             ':quantite' => $quantite,
+            ':unite' => $unite,
             ':date' => $date,
         ]);
         return true;

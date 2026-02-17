@@ -1,3 +1,14 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BNGRC - Gestion des catastrophes</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/theme.css">
+    <link rel="stylesheet" href="/css/effects.css">
+</head>
+<body>
 <h1>Nouveau Besoin</h1>
 
 <?php if (!empty($error)): ?>
@@ -75,3 +86,6 @@
         <a href="/besoin/list">Annuler</a>
     </p>
 </form>
+
+</body>
+</html>
